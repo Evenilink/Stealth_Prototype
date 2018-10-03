@@ -20,6 +20,7 @@ public class Enemy : MonoBehaviour {
     [Header("Components")]
     private NavMeshAgent agent;
     private AudioSource audioSource;
+    private PawnSensingComponent sensingComp;
 
     [Header("Defaults")]
     private IGuardState state;
@@ -29,6 +30,7 @@ public class Enemy : MonoBehaviour {
         Random.InitState((int)System.DateTime.Now.Ticks);
         agent = GetComponent<NavMeshAgent>();
         audioSource = GetComponent<AudioSource>();
+        sensingComp = GetComponent<PawnSensingComponent>();
         PawnSensingComponent.OnSeePawn += OnSeePawnHandler;
         PawnSensingComponent.OnHearNoise += OnHearNoise;
         state = new PatrollingState();
@@ -66,6 +68,10 @@ public class Enemy : MonoBehaviour {
 
     public NavMeshAgent GetNavMeshAgent() {
         return agent;
+    }
+
+    public PawnSensingComponent GetSensingComp() {
+        return sensingComp;
     }
 
     public TargetInfo[] GetTargets() {

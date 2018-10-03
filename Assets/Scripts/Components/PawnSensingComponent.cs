@@ -68,28 +68,32 @@ namespace AI {
 
         // Senses the player presence periodically.
         // Dispatches an event to all subscribers when the player is seen.
+        // TODO: Right now it only works with the "Player" tag.
         IEnumerator SensePlayer() {
             while (true) {
                 GameObject player = GameObject.FindGameObjectWithTag("Player");
-
-                if (player != null && OnSeePawn != null) {
-                    // Checks if there's a line of sight to the player.
-                    Vector3 direction = player.transform.position - transform.position;
-                    RaycastHit hit;
-                    Physics.Raycast(transform.position, direction.normalized.normalized, out hit);
-                    bool hasLineOfSight = hit.collider.gameObject.tag == "Player";
-
-                    if (hasLineOfSight) {
-                        // If there's a line of sight to the player, we calculate if the pawn can see the player, based on their positions and view angle.
-                        float radians = Mathf.Acos(Vector3.Dot(direction, transform.forward) / (direction.magnitude * transform.forward.magnitude));
-                        float angle = radians * 180 / Mathf.PI;
-
-                        if (angle <= (fovAngle / 2))
-                            OnSeePawn(player);
-                    }
-                }
+                if (player != null && OnSeePawn != null && CanSeeOther(player.transform))
+                    OnSeePawn(player);
                 yield return new WaitForSeconds(sensingInterval);
             }
+        }
+
+        // TODO: Right now it only works with the "Player" tag.
+        public bool CanSeeOther(Transform other) {
+            // Checks if there's a line of sight to the player.
+            Vector3 direction = other.transform.position - transform.position;
+            RaycastHit hit;
+            bool hasLineOfSight = Physics.Raycast(transform.position, direction.normalized, out hit, fovRadious);
+
+            if (hasLineOfSight && hit.collider.gameObject.tag == "Player") {
+                // If there's a line of sight to the player, we calculate if the pawn can see the player, based on their positions and view angle.
+                float radians = Mathf.Acos(Vector3.Dot(direction, transform.forward) / (direction.magnitude * transform.forward.magnitude));
+                float angle = radians * 180 / Mathf.PI;
+
+                if (angle <= (fovAngle / 2))
+                    return true;
+            }
+            return false;
         }
 
         /*private void OnTriggerStay(Collider other) {

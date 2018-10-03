@@ -27,7 +27,7 @@ public class InvestigateState : IGuardState {
     }
 
     public IGuardState OnSeePawnHandler(GameObject gameObject) {
-        throw new System.NotImplementedException();
+        return new AlertState(gameObject);
     }
 
     IGuardState IGuardState.Update() {
