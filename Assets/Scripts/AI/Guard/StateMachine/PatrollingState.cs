@@ -19,7 +19,9 @@ public class PatrollingState : IGuardState {
         self.GetNavMeshAgent().speed = AGENT_SPEED;
     }
 
-    public void Exit() { }
+    public void Exit() {
+        self.GetNavMeshAgent().ResetPath();
+    }
 
     public IGuardState Update() {
         if (self.GetTargets().Length == 0)
@@ -39,7 +41,7 @@ public class PatrollingState : IGuardState {
 
     public IGuardState OnSeePawnHandler(GameObject gameObject) {
         if (gameObject.GetComponent<Hero>() != null)
-            return new AlertState();
+            return new AlertState(gameObject);
         return null;
     }
 

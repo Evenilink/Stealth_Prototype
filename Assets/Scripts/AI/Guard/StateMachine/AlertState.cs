@@ -10,6 +10,7 @@ public class AlertState : IGuardState {
     private float suspiciousness = 0;
     private bool isSuspicious = false;
     private Enemy self;
+    private GameObject player;
 
     /*private Suspiciousness suspiciousnessState;
     private enum Suspiciousness {
@@ -18,9 +19,9 @@ public class AlertState : IGuardState {
         ALERTED,
     }*/
 
-    /*public AlertState(GameObject gameObject) {
-
-    }*/
+    public AlertState(GameObject player) {
+        this.player = player;
+    }
 
     public void Enter(Enemy self) {
         this.self = self;
@@ -35,22 +36,19 @@ public class AlertState : IGuardState {
     }
 
     public IGuardState OnSeePawnHandler(GameObject gameObject) {
-        throw new System.NotImplementedException();
+        Debug.Log("Suspicious: " + suspiciousness);
+        suspiciousness += 1 / 6;
+        return null;
     }
 
     public IGuardState Update() {
-        suspiciousness += CalculateSuspiciousnessDelta();
-        if (suspiciousness >= ALERTED)
-            return new AlarmState();
-        else if (suspiciousness >= SUSPICIOUS && !isSuspicious) {
+        /*if (suspiciousness >= ALERTED)
+            return new AlarmState();*/
+        if (suspiciousness >= SUSPICIOUS && !isSuspicious) {
             isSuspicious = true;
-            //self.GetNavMeshAgent().destination = 
+            self.transform.LookAt(player.transform);
+            self.GetNavMeshAgent().destination = player.transform.position;
         }
-
-            return null;
-    }
-
-    private float CalculateSuspiciousnessDelta() {
-        return 1 / 3;
+        return null;
     }
 }

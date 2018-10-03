@@ -33,14 +33,14 @@ namespace AI {
         public delegate void HearNoise(GameObject instigator, float loudness, Vector3 noisePosition);
         public static HearNoise OnHearNoise;
 
-        private float sensingInterval = 0.5f;
+        private float sensingInterval = 0.25f;
 
         private void Awake() {
             if (seePawns) {
                 // Creating field of view and hear colliders.
-                SphereCollider fovCollider = gameObject.AddComponent<SphereCollider>();
+                /*SphereCollider fovCollider = gameObject.AddComponent<SphereCollider>();
                 fovCollider.isTrigger = true;
-                fovCollider.radius = fovRadious;
+                fovCollider.radius = fovRadious;*/
                 if (drawFov) {
                     fovMesh = new Mesh();
                     fovMesh.name = "Field of View Mesh";
@@ -66,6 +66,8 @@ namespace AI {
                 DrawFov();
         }
 
+        // Senses the player presence periodically.
+        // Dispatches an event to all subscribers when the player is seen.
         IEnumerator SensePlayer() {
             while (true) {
                 GameObject player = GameObject.FindGameObjectWithTag("Player");
