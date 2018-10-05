@@ -19,6 +19,7 @@ public class CoverComponent : MonoBehaviour {
         RIGHT, LEFT
     };
 
+    // Event Dispatchers.
     public delegate void CornerEnter(Side fromSide);
     public static CornerEnter OnCornerEnter;
     public delegate void CornerExit();

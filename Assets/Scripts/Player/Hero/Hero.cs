@@ -12,11 +12,13 @@ public class Hero : MonoBehaviour {
     [Header("Default")]
     private CoverComponent coverComp;
     private PawnNoiseEmitterComponent noiseEmitter;
+    private InteractComponent interactComp;
     private IHeroState heroState;
 
     private void Start () {
         coverComp = GetComponent<CoverComponent>();
         noiseEmitter = GetComponent<PawnNoiseEmitterComponent>();
+        interactComp = GetComponent<InteractComponent>();
         heroState = new StandingState();
         heroState.Enter(this);
     }
@@ -29,6 +31,10 @@ public class Hero : MonoBehaviour {
             heroState.Enter(this);
         }
 
+        if (Input.GetButtonDown("Interact"))
+            interactComp.Interact();
+
+        // Debug only.
         if (Input.GetKeyDown(KeyCode.Q))
             noiseEmitter.MakeNoise(this.gameObject, 1, transform.position);
     }
