@@ -6,9 +6,11 @@ using UnityEngine.UI;
 public class HUDManager : MonoBehaviour {
 
     private Slider suspiciousnessSlider;
+    private RawImage crosshair;
 
 	void Start () {
         suspiciousnessSlider = GetComponentInChildren<Slider>();
+        crosshair = GetComponentInChildren<RawImage>();
         AlertState.OnSuspiciousnessChange += OnSuspiciousnessChange;
     }
 	

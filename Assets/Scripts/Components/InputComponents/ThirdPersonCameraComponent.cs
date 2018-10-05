@@ -4,19 +4,28 @@ using UnityEngine;
 
 public class ThirdPersonCameraComponent : MonoBehaviour {
 
+    [Header("Camera Settings")]
     [SerializeField] private GameObject target;
+    [SerializeField] private Transform rotationPivot;
     [SerializeField] private float hSensitivity = 2f;
     [SerializeField] private float vSensitivity = 2f;
     [SerializeField, Range(0, 90)] private float maxUpAngle = 90f;
     [SerializeField, Range(0, 90)] private float minDownAngle = 90f;
-    private Vector3 offset;
     private Vector3 mouseDelta;
     private Vector3 currMouseLook;
 
+    [Header("Corner Settings")]
+    [SerializeField] private float aroundCornerOffset;
+    [SerializeField] private float aroundCornerTime;
+    private Vector3 pivotLocalPosition;
+    private IEnumerator cornerCoroutine;
+
     void Start () {
-        offset = target.transform.position - transform.position;
         mouseDelta = new Vector3(0, 0);
         currMouseLook = new Vector3(0, 0);
+        pivotLocalPosition = rotationPivot.localPosition;
+        CoverComponent.OnCornerEnter += OnCornerEnterHandler;
+        CoverComponent.OnCornerExit += OnCornerExitHandler;
     }
 
     void LateUpdate() {
@@ -27,8 +36,39 @@ public class ThirdPersonCameraComponent : MonoBehaviour {
         currMouseLook.y = Mathf.Clamp(currMouseLook.y + mouseDelta.y, -minDownAngle, maxUpAngle);
 
         Quaternion rotation = Quaternion.Euler(currMouseLook.y, currMouseLook.x, 0);
-        transform.position = target.transform.position - (rotation * offset);   // TODO: how does this quaternion gets calculated with a Vector3?
+        rotationPivot.rotation = rotation;     
+    }
 
-        transform.LookAt(target.transform);
+    private void OnCornerEnterHandler(CoverComponent.Side fromSide) {
+        if (cornerCoroutine != null)
+            StopCoroutine(cornerCoroutine);
+        Vector3 newCamPosition = pivotLocalPosition + new Vector3(fromSide == CoverComponent.Side.RIGHT ? - aroundCornerOffset : aroundCornerOffset, 0, 0); // 'x' axis is negative when we're in the 'right' corner because the pivot is rotated 180 degrees by default, so axis values are inverted.
+        cornerCoroutine = SetAroundCornerView(newCamPosition);
+        StartCoroutine(cornerCoroutine);
+    }
+
+    private void OnCornerExitHandler() {
+        if (cornerCoroutine != null)
+            StopCoroutine(cornerCoroutine);
+        cornerCoroutine = SetAroundCornerView(pivotLocalPosition);
+        StartCoroutine(cornerCoroutine);
+    }
+
+    IEnumerator SetAroundCornerView(Vector3 finalPosition) {
+        float startedTime = Time.time;
+        float speed = aroundCornerOffset / aroundCornerTime;
+        float fracCompleted = 0f;
+
+        while (fracCompleted < 1f) {
+            float distCovered = speed * (Time.time - startedTime);
+            fracCompleted = distCovered / aroundCornerOffset;
+            rotationPivot.localPosition = Vector3.Lerp(rotationPivot.localPosition, finalPosition, fracCompleted);
+            yield return null;
+        }
+    }
+
+    private void OnDestroy() {
+        CoverComponent.OnCornerEnter -= OnCornerEnterHandler;
+        CoverComponent.OnCornerExit -= OnCornerExitHandler;
     }
 }

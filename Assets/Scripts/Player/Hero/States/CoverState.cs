@@ -7,6 +7,8 @@ public class CoverState : IHeroState {
     private Hero hero;
     private float movSpeed = 3f;
     private Vector3 rightDir;
+    private bool reachedRightEnd = false;
+    private bool reachedLeftEnd = false;
 
     public void Enter(Hero hero) {
         Debug.Log("IHeroState: Entered 'CoverState'.");
@@ -32,12 +34,11 @@ public class CoverState : IHeroState {
 
     private void UpdateMovement() {
         float hInput = Input.GetAxis("Horizontal");
-
         // Debug.Log(hInput * rightDir * movSpeed + ", " + hInput * -rightDir * movSpeed);
 
-        if (hInput > 0.2f && hero.GetCoverComponent().CanMoveRight())
+        if (hInput > 0f && hero.GetCoverComponent().CanMoveRight())
             hero.transform.position += hInput * rightDir * movSpeed * Time.deltaTime;
-        else if (hInput < -0.2f && hero.GetCoverComponent().CanMoveLeft())
+        else if (hInput < 0f && hero.GetCoverComponent().CanMoveLeft())
             hero.transform.position -= hInput * -rightDir * movSpeed * Time.deltaTime;  // Why??? It should only require one minus!
     }
 }
