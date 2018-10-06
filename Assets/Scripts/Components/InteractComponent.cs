@@ -8,6 +8,7 @@ public class InteractComponent : MonoBehaviour {
     [SerializeField] private Transform view;    // Raycast from this transform.
     [SerializeField] private LayerMask interactables;
     private GameObject interactable; // Object the 'view' is looking.
+    private Vector3 interactableNormal;
     private float raycastDistance = 1.5f;
 
     [Header("Pickup")]
@@ -31,11 +32,15 @@ public class InteractComponent : MonoBehaviour {
         RaycastHit hit;
         if (Physics.Raycast(view.position, view.forward, out hit, raycastDistance, interactables)) {
             GameObject currInteractable = hit.collider.gameObject;
-            if (currInteractable != interactable && OnSeeInteractable != null)
-                OnSeeInteractable(currInteractable);
-            interactable = currInteractable;
+            if (currInteractable != interactable) {
+                interactable = currInteractable;
+                if (OnSeeInteractable != null)
+                    OnSeeInteractable(currInteractable);
+            }
+            interactableNormal = hit.normal;
         } else if (interactable != null) {
             interactable = null;
+            interactableNormal = Vector3.zero;
             if (OnStopSeeInteractable != null)
                 OnStopSeeInteractable();
         }
@@ -48,6 +53,7 @@ public class InteractComponent : MonoBehaviour {
         // Pickable object.
         PickableComponent pickableComp = interactable.GetComponent<PickableComponent>();
         if (pickableComp != null) {
+            //GetAngleToPickObject(interactable, interactableNormal);
             if (pickedUp) {
                 StopCoroutine(pickObject);
                 DropObject();
@@ -63,18 +69,24 @@ public class InteractComponent : MonoBehaviour {
     // Picks up the current facing object.
     IEnumerator PickObject() {
         pickedUp = true;
+        float yAngleToAdd = GetAngleToPickObject(interactable, interactableNormal);
+        float finalAngle = interactable.transform.eulerAngles.y + yAngleToAdd;
         interactable.GetComponent<Rigidbody>().useGravity = false;
-        //interactable.GetComponent<BoxCollider>().enabled = false;
         float a = 0;
+        float initialCamYRotation = view.eulerAngles.y;
 
         while (true) {
             // The 'view' position +
             // the character forward vector * distance we want to hold the object +
             // the sin amount of the 'view' rotation in the 'y' axis (sets the picked object 'y' axis based on the 'view' rotation).
             interactable.transform.position = Vector3.Lerp(interactable.transform.position, view.position + transform.forward * holdingDistance + new Vector3(0, - Mathf.Sin(view.eulerAngles.x * Mathf.Deg2Rad), 0), a);
+
+            float camYRotationDelta = view.eulerAngles.y - initialCamYRotation;
             // The picked object is always facing 'view' without rotating the other axis.
             // E.g. in this example, we're using the first person camera as the view, and although its 'y' local rotation is 0, its global one isn't.
-            interactable.transform.eulerAngles = Vector3.Lerp(interactable.transform.eulerAngles, new Vector3(0, view.eulerAngles.y, 0), a);
+            // interactable.transform.eulerAngles = Vector3.Lerp(interactable.transform.eulerAngles, new Vector3(0, yAngle + view.eulerAngles.y, 0), a);
+            interactable.transform.eulerAngles = new Vector3(0, finalAngle + camYRotationDelta, 0);
+            // interactable.transform.eulerAngles = Vector3.Lerp(interactable.transform.eulerAngles, new Vector3(0, finalAngle + view.eulerAngles.y, 0), a);
             a += Time.deltaTime;
             yield return null;
         }
@@ -87,5 +99,28 @@ public class InteractComponent : MonoBehaviour {
         rigidbody.velocity = Vector3.zero;
         rigidbody.angularVelocity = Vector3.zero;
         rigidbody.useGravity = true;
+    }
+
+    private float GetAngleToPickObject(GameObject gameObject, Vector3 collidedSideNormal) {
+        return 180 - Vector3.SignedAngle(transform.forward, collidedSideNormal, Vector3.up);
+
+        if (collidedSideNormal == gameObject.transform.forward) {
+            Debug.Log("Front");
+            return 0f;
+        }
+        else if (collidedSideNormal == -gameObject.transform.forward) {
+            float a = 180 - Vector3.SignedAngle(transform.forward, collidedSideNormal, Vector3.up);
+            Debug.Log("Back: " + a);
+            return a;
+        }
+        else if (collidedSideNormal == gameObject.transform.right) {
+            Debug.Log("Right");
+            return 90f;
+        }
+        else if (collidedSideNormal == -gameObject.transform.right) {
+            Debug.Log("Left");
+            return 270f;
+        }
+        return 0f;
     }
 }
