@@ -22,6 +22,10 @@ public class InteractComponent : MonoBehaviour {
     public static StopSeeInteractable OnStopSeeInteractable;
 
     void Update () {
+        // If we already have a picked up object, we don't need to raycast.
+        if (pickedUp)
+            return;
+
         Debug.DrawLine(view.position, view.position + view.forward * raycastDistance, Color.yellow);
         // Shots a raycast to detect interactable objects.
         RaycastHit hit;
@@ -57,18 +61,21 @@ public class InteractComponent : MonoBehaviour {
     }
 
     // Picks up the current facing object.
-    private IEnumerator PickObject() {
+    IEnumerator PickObject() {
         pickedUp = true;
         interactable.GetComponent<Rigidbody>().useGravity = false;
-        interactable.GetComponent<BoxCollider>().enabled = false;
+        //interactable.GetComponent<BoxCollider>().enabled = false;
+        float a = 0;
 
         while (true) {
             // The 'view' position +
             // the character forward vector * distance we want to hold the object +
             // the sin amount of the 'view' rotation in the 'y' axis (sets the picked object 'y' axis based on the 'view' rotation).
-            interactable.transform.position = view.position + transform.forward * holdingDistance + new Vector3(0, - Mathf.Sin(view.eulerAngles.x * Mathf.Deg2Rad), 0);
+            interactable.transform.position = Vector3.Lerp(interactable.transform.position, view.position + transform.forward * holdingDistance + new Vector3(0, - Mathf.Sin(view.eulerAngles.x * Mathf.Deg2Rad), 0), a);
             // The picked object is always facing 'view' without rotating the other axis.
-            interactable.transform.eulerAngles = new Vector3(0, view.eulerAngles.y, 0);
+            // E.g. in this example, we're using the first person camera as the view, and although its 'y' local rotation is 0, its global one isn't.
+            interactable.transform.eulerAngles = Vector3.Lerp(interactable.transform.eulerAngles, new Vector3(0, view.eulerAngles.y, 0), a);
+            a += Time.deltaTime;
             yield return null;
         }
     }
@@ -78,6 +85,7 @@ public class InteractComponent : MonoBehaviour {
         pickedUp = false;
         Rigidbody rigidbody = interactable.GetComponent<Rigidbody>();
         rigidbody.velocity = Vector3.zero;
+        rigidbody.angularVelocity = Vector3.zero;
         rigidbody.useGravity = true;
     }
 }
