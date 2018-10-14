@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 public class Inventory : MonoBehaviour {
 
-    private int totalSize;
     private int remainingSize;
     private List<BaseItem> items = new List<BaseItem>();
 
