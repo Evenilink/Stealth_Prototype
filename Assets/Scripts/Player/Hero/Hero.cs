@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Hero : MonoBehaviour {
 
@@ -13,12 +11,19 @@ public class Hero : MonoBehaviour {
     private CoverComponent coverComp;
     private PawnNoiseEmitterComponent noiseEmitter;
     private InteractComponent interactComp;
+    private Weapon weaponComp;
     private IHeroState heroState;
+
+    private struct InventoryWeapons {
+        BaseWeapon weaponStats;
+        int currAmmo;
+    }
 
     private void Start () {
         coverComp = GetComponent<CoverComponent>();
         noiseEmitter = GetComponent<PawnNoiseEmitterComponent>();
         interactComp = GetComponent<InteractComponent>();
+        weaponComp = GetComponentInChildren<Weapon>();
         heroState = new StandingState();
         heroState.Enter(this);
     }
@@ -34,9 +39,19 @@ public class Hero : MonoBehaviour {
         if (Input.GetButtonDown("Interact"))
             interactComp.Interact();
 
+        if (Input.GetButton("Fire1"))
+            weaponComp.Fire();
+
+        WeaponSelectionInput();
+
         // Debug only.
         if (Input.GetKeyDown(KeyCode.Q))
             noiseEmitter.MakeNoise(this.gameObject, 1, transform.position);
+    }
+
+    // TODO.
+    private void WeaponSelectionInput() {
+        
     }
 
     public Camera GetFPCamera() {
