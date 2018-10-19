@@ -45,6 +45,8 @@ public class CoverComponent : MonoBehaviour {
         }
     }
 
+    // Calculates the availability of lateral movement.
+    // If the player is too close to an edge, it makes the movement impossible.
     private void CalculateLateralMovementAvailability(Vector3 dir, Side side) {
         if (debug) {
             Vector3 end = transform.position + (side == Side.RIGHT ? checkRight : checkLeft) * checkCanMoveRaycastLength;
@@ -111,6 +113,7 @@ public class CoverComponent : MonoBehaviour {
     // SWAP
     // *************************************
 
+    // Calculates if a direct or undirect swap is possible, and sets the appropriate variables.
     private void CalculateSwapChangeAvailability(Vector3 dir) {
         // Direct cover.
         if (debug) {
@@ -143,6 +146,7 @@ public class CoverComponent : MonoBehaviour {
         }
     }
 
+    // Executes the swap.
     public void Swap() {
         if (swapAvailable)
             ActivateCover(swapHit);
