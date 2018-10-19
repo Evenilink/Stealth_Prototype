@@ -2,7 +2,6 @@
 
 public class CoverComponent : MonoBehaviour {
 
-
     [Header("Default")]
     [SerializeField] private LayerMask coverObstaclesLayer;
     [SerializeField] private const float RAYCAST_LENGTH = 5f;
@@ -114,19 +113,27 @@ public class CoverComponent : MonoBehaviour {
 
     private void CalculateSwapChangeAvailability(Vector3 dir) {
         // Direct cover.
-        if (debug)
+        if (debug) {
             Debug.DrawLine(transform.position, transform.position + dir * swapRaycastLength, Color.green);
+            Debug.DrawLine(transform.position + dir * swapRaycastLength + -transform.forward * 2f, transform.position + dir * swapRaycastLength + -transform.forward * 2f + -dir * swapRaycastLength, Color.yellow);
+        }
 
         RaycastHit hit;
-        if (Physics.Raycast(transform.position, dir, out hit, swapRaycastLength, coverObstaclesLayer)) {
+        // Test if a direct swap if possible.
+        bool directSwapAvailable = Physics.Raycast(transform.position, dir, out hit, swapRaycastLength, coverObstaclesLayer);
+        bool undirectSwapAvailable = false;
+        // If a direct swap isn't possible, we'll attempt an undirect swap.
+        if (!directSwapAvailable)
+            undirectSwapAvailable = Physics.Raycast(transform.position + dir * swapRaycastLength + -transform.forward, -dir, out hit, swapRaycastLength * 2f, coverObstaclesLayer);
+        if(directSwapAvailable || undirectSwapAvailable) {
             if (hit.point != swapHit.point || !swapAvailable) {
                 swapAvailable = true;
                 swapHit = hit;
                 if (OnSwapChangeAvailability != null)
                     OnSwapChangeAvailability(true);
             }
-
-            if (hit.distance <= minDistanceToMoveFromCover)
+            // We only want to stop the movement if we're too close to a direct swap.
+            if (directSwapAvailable && hit.distance <= minDistanceToMoveFromCover)
                 canKeepMoving = false;
         }
         else if (swapAvailable) {
@@ -134,8 +141,6 @@ public class CoverComponent : MonoBehaviour {
             if (OnSwapChangeAvailability != null)
                 OnSwapChangeAvailability(false);
         }
-
-        // Undirect cover.
     }
 
     public void Swap() {
