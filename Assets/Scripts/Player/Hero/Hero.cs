@@ -3,15 +3,15 @@
 public class Hero : MonoBehaviour {
 
     [Header("Camera")]
-    [SerializeField] private Camera FPCam;
-    [SerializeField] private Camera TPCam;
-    private Camera activeCam;
+    [SerializeField] private BaseCamera FPCam;
+    [SerializeField] private BaseCamera TPCam;
+    private BaseCamera activeCam;
 
     [Header("Default")]
     private CoverComponent coverComp;
     private PawnNoiseEmitterComponent noiseEmitter;
     private InteractComponent interactComp;
-    private Weapon weaponComp;
+    //private Weapon weaponComp;
     private IHeroState heroState;
 
     private struct InventoryWeapons {
@@ -20,10 +20,11 @@ public class Hero : MonoBehaviour {
     }
 
     private void Start () {
+        activeCam = FPCam;
         coverComp = GetComponent<CoverComponent>();
         noiseEmitter = GetComponent<PawnNoiseEmitterComponent>();
         interactComp = GetComponent<InteractComponent>();
-        weaponComp = GetComponentInChildren<Weapon>();
+        //weaponComp = GetComponentInChildren<Weapon>();
         heroState = new StandingState();
         heroState.Enter(this);
     }
@@ -39,10 +40,10 @@ public class Hero : MonoBehaviour {
         if (Input.GetButtonDown("Interact"))
             interactComp.Interact();
 
-        if (Input.GetButton("Fire1"))
-            weaponComp.Fire();
+        /*if (Input.GetButton("Fire1"))
+            weaponComp.Fire();*/
 
-        WeaponSelectionInput();
+        //WeaponSelectionInput();
 
         // Debug only.
         if (Input.GetKeyDown(KeyCode.Q))
@@ -54,34 +55,33 @@ public class Hero : MonoBehaviour {
         
     }
 
-    public Camera GetFPCamera() {
+    public BaseCamera GetFPCamera() {
         return FPCam;
     }
 
-    public Camera GetTPCamera() {
+    public BaseCamera GetTPCamera() {
         return TPCam;
     }
 
-    public Camera GetActiveCamera() {
+    public BaseCamera GetActiveCamera() {
         return activeCam;
     }
 
-    public void SetActiveCamera(Camera newCamera) {
+    public void SetActiveCamera(BaseCamera newCamera) {
         if (activeCam == newCamera)
             return;
-
+        newCamera.SetLastCameraRotation(activeCam.GetRotation());
+        EnableCameraComponents(activeCam, false);
+        EnableCameraComponents(newCamera, true);
         activeCam = newCamera;
-        if (newCamera == FPCam) {
-            TPCam.GetComponent<Camera>().enabled = false;
-            TPCam.GetComponent<ThirdPersonCameraComponent>().enabled = false;
-            FPCam.GetComponent<Camera>().enabled = true;
-            FPCam.GetComponent<FirstPersonCameraComponent>().enabled = true;
-        } else {
-            FPCam.GetComponent<Camera>().enabled = false;
-            FPCam.GetComponent<FirstPersonCameraComponent>().enabled = false;
-            TPCam.GetComponent<Camera>().enabled = true;
-            TPCam.GetComponent<ThirdPersonCameraComponent>().enabled = true;
-        }
+    }
+
+    private void EnableCameraComponents(BaseCamera cam, bool enable) {
+        cam.GetComponent<Camera>().enabled = enable;
+        cam.GetComponent<AudioListener>().enabled = enable;
+        if (cam == FPCam)
+            cam.GetComponent<FirstPersonCameraComponent>().enabled = enable;
+        else cam.GetComponent<ThirdPersonCameraComponent>().enabled = enable;
     }
 
     public CoverComponent GetCoverComponent() {
