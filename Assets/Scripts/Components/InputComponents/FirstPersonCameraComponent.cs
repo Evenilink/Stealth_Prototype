@@ -14,10 +14,13 @@ public class FirstPersonCameraComponent : MonoBehaviour {
 
     void Start () {
         mouseDelta = new Vector2(0, 0);
-        currMouseLook = new Vector2(0, 0);
+        // x starts with the current y rotation of the target, and y with the x rotation of the target,
+        // so that the camera can already start in its default position, since in the LateUpdate method,
+        // we're replacing its rotation value, instead of adding to it.
+        currMouseLook = new Vector2(target.transform.eulerAngles.y, target.transform.eulerAngles.x);
     }
 	
-	void Update () {
+	void LateUpdate () {
         // Mouse camera calculations.
         mouseDelta.x = Input.GetAxisRaw("Mouse X") * hSensibility;
         mouseDelta.y = Input.GetAxisRaw("Mouse Y") * vSensibility;

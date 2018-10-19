@@ -22,7 +22,9 @@ public class ThirdPersonCameraComponent : MonoBehaviour {
 
     void Start () {
         mouseDelta = new Vector3(0, 0);
-        currMouseLook = new Vector3(0, 0);
+        // x starts with the current y rotation of the pivot, so that the camera can already start in its default position,
+        // since in the LateUpdate method, we're replacing its rotation value, instead of adding to it.
+        currMouseLook = new Vector3(rotationPivot.localEulerAngles.y, 0);
         pivotLocalPosition = rotationPivot.localPosition;
         CoverComponent.OnCornerEnter += OnCornerEnterHandler;
         CoverComponent.OnCornerExit += OnCornerExitHandler;
@@ -35,7 +37,8 @@ public class ThirdPersonCameraComponent : MonoBehaviour {
         currMouseLook.x += mouseDelta.x;
         currMouseLook.y = Mathf.Clamp(currMouseLook.y + mouseDelta.y, -minDownAngle, maxUpAngle);
 
-        Quaternion rotation = Quaternion.Euler(currMouseLook.y, currMouseLook.x, 0);
+        // If we want the vertical rotation axis to be inverted (as we normally do), we use a minus here.
+        Quaternion rotation = Quaternion.Euler(-currMouseLook.y, currMouseLook.x, 0);
         rotationPivot.rotation = rotation;     
     }
 
