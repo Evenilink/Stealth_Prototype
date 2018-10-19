@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class CoverComponent : MonoBehaviour {
 
@@ -32,26 +30,26 @@ public class CoverComponent : MonoBehaviour {
     private void Update() {
         if (debug && !isInCover) {
             RaycastHit hit;
-            if (Physics.SphereCast(transform.position, RAYCAST_SPHERE_RADIOUS, transform.forward, out hit, RAYCAST_LENGTH, coverObstaclesLayer, QueryTriggerInteraction.Ignore)) {
+            if (Physics.SphereCast(transform.position, RAYCAST_SPHERE_RADIOUS, transform.forward, out hit, RAYCAST_LENGTH, coverObstaclesLayer)) {
                 Debug.DrawLine(hit.point, hit.point + hit.normal * 20);
             }
         }
         if (isInCover) {
             if (debug) {
-                /*Vector3 end = transform.position + Quaternion.Euler(0, 135, 0) * coverNormal * RAYCAST_CAN_MOVE_LENGTH;
-                Debug.DrawLine(transform.position, end, Color.green, 1f);*/
+                Vector3 end = transform.position + Quaternion.Euler(0, 135, 0) * coverNormal * RAYCAST_CAN_MOVE_LENGTH;
+                Debug.DrawLine(transform.position, end, Color.green);
                 Vector3 end2 = transform.position + Quaternion.Euler(0, -135, 0) * coverNormal * RAYCAST_CAN_MOVE_LENGTH;
-                Debug.DrawLine(transform.position, end2, Color.blue, 5f);
+                Debug.DrawLine(transform.position, end2, Color.blue);
             }
 
-            bool currCanMoveRight = Physics.Raycast(transform.position, checkRight, RAYCAST_CAN_MOVE_LENGTH, coverObstaclesLayer, QueryTriggerInteraction.UseGlobal);
+            bool currCanMoveRight = Physics.Raycast(transform.position, checkRight, RAYCAST_CAN_MOVE_LENGTH, coverObstaclesLayer);
             if (!currCanMoveRight && canMoveRight && OnCornerEnter != null)
                 OnCornerEnter(Side.RIGHT);
             if (currCanMoveRight && !canMoveRight && OnCornerExit != null)
                 OnCornerExit();
             canMoveRight = currCanMoveRight;
 
-            bool currCanMoveLeft = Physics.Raycast(transform.position, checkLeft, RAYCAST_CAN_MOVE_LENGTH, coverObstaclesLayer, QueryTriggerInteraction.UseGlobal);
+            bool currCanMoveLeft = Physics.Raycast(transform.position, checkLeft, RAYCAST_CAN_MOVE_LENGTH, coverObstaclesLayer);
             if (!currCanMoveLeft && canMoveLeft && OnCornerEnter != null)
                 OnCornerEnter(Side.LEFT);
             if (currCanMoveLeft && !canMoveLeft && OnCornerExit != null)
@@ -63,7 +61,7 @@ public class CoverComponent : MonoBehaviour {
     public bool ToogleCover() {
         if (!isInCover) {
             RaycastHit hit;
-            if (Physics.SphereCast(transform.position, RAYCAST_SPHERE_RADIOUS, transform.forward, out hit, RAYCAST_LENGTH, coverObstaclesLayer, QueryTriggerInteraction.Ignore)) {
+            if (Physics.SphereCast(transform.position, RAYCAST_SPHERE_RADIOUS, transform.forward, out hit, RAYCAST_LENGTH, coverObstaclesLayer)) {
                 ActivateCover(hit);
                 return true;
             }
@@ -79,10 +77,10 @@ public class CoverComponent : MonoBehaviour {
     }
 
     private void ActivateCover(RaycastHit hit) {
-        // We save the hit normal  and calculate the vectors that will help determine if the player can continue to move left or right in cover.
+        // We save the hit normal and calculate the vectors that will help determine if the player can continue to move left or right in cover.
         coverNormal = hit.normal;
-        checkLeft = Quaternion.Euler(0, 135, 0) * coverNormal * RAYCAST_CAN_MOVE_LENGTH;
-        checkRight = Quaternion.Euler(0, -135, 0) * coverNormal * RAYCAST_CAN_MOVE_LENGTH;
+        checkLeft = Quaternion.Euler(0, 135, 0) * coverNormal;
+        checkRight = Quaternion.Euler(0, -135, 0) * coverNormal;
 
         // Set new position.
         Vector3 coverPosition = hit.point;
@@ -90,8 +88,7 @@ public class CoverComponent : MonoBehaviour {
         transform.position = coverPosition;
 
         // Set new rotation.
-        float angleToRotate = Vector3.Angle(transform.forward, hit.normal);
-        transform.localRotation = Quaternion.LookRotation(hit.normal, transform.up);
+        transform.rotation = Quaternion.LookRotation(hit.normal, transform.up);
 
         isInCover = true;
     }
