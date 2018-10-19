@@ -36,15 +36,9 @@ namespace AI {
         private float sensingInterval = 0.25f;
 
         private void Awake() {
-            if (seePawns) {
-                // Creating field of view and hear colliders.
-                /*SphereCollider fovCollider = gameObject.AddComponent<SphereCollider>();
-                fovCollider.isTrigger = true;
-                fovCollider.radius = fovRadious;*/
-                if (drawFov) {
-                    fovMesh = new Mesh();
-                    fovMesh.name = "Field of View Mesh";
-                }
+            if (drawFov) {
+                fovMesh = new Mesh();
+                fovMesh.name = "Field of View Mesh";
             }
         }
 

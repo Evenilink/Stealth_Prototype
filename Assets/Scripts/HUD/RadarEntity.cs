@@ -7,6 +7,6 @@ public class RadarEntity : MonoBehaviour {
     }
 
     private void OnDestroy() {
-        // Radar.Instance()
+        Radar.Instance().RemoveEntity(gameObject);
     }
 }
