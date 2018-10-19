@@ -10,14 +10,14 @@ public class ThirdPersonCameraComponent : BaseCamera {
     [Header("Corner Settings")]
     [SerializeField] private float aroundCornerOffset;
     [SerializeField] private float aroundCornerTime;
-    private Vector3 pivotLocalPosition;
+    private Vector3 pivotStartLocalPosition;
     private IEnumerator cornerCoroutine;
 
     void Start () {
         // x starts with the current y rotation of the pivot, so that the camera can already start in its default position,
         // since in the LateUpdate method, we're replacing its rotation value, instead of adding to it.
         currMouseLook = new Vector3(rotationPivot.localEulerAngles.y, 0);
-        pivotLocalPosition = rotationPivot.localPosition;
+        pivotStartLocalPosition = rotationPivot.localPosition;
         CoverComponent.OnCornerEnter += OnCornerEnterHandler;
         CoverComponent.OnCornerExit += OnCornerExitHandler;
     }
@@ -32,7 +32,7 @@ public class ThirdPersonCameraComponent : BaseCamera {
     private void OnCornerEnterHandler(CoverComponent.Side fromSide) {
         if (cornerCoroutine != null)
             StopCoroutine(cornerCoroutine);
-        Vector3 newCamPosition = pivotLocalPosition + new Vector3(fromSide == CoverComponent.Side.RIGHT ? - aroundCornerOffset : aroundCornerOffset, 0, 0); // 'x' axis is negative when we're in the 'right' corner because the pivot is rotated 180 degrees by default, so axis values are inverted.
+        Vector3 newCamPosition = pivotStartLocalPosition + new Vector3(fromSide == CoverComponent.Side.RIGHT ? - aroundCornerOffset : aroundCornerOffset, 0, 0); // 'x' axis is negative when we're in the 'right' corner because the pivot is rotated 180 degrees by default, so axis values are inverted.
         cornerCoroutine = SetAroundCornerView(newCamPosition);
         StartCoroutine(cornerCoroutine);
     }
@@ -40,7 +40,7 @@ public class ThirdPersonCameraComponent : BaseCamera {
     private void OnCornerExitHandler() {
         if (cornerCoroutine != null)
             StopCoroutine(cornerCoroutine);
-        cornerCoroutine = SetAroundCornerView(pivotLocalPosition);
+        cornerCoroutine = SetAroundCornerView(pivotStartLocalPosition);
         StartCoroutine(cornerCoroutine);
     }
 
@@ -60,5 +60,11 @@ public class ThirdPersonCameraComponent : BaseCamera {
     private void OnDestroy() {
         CoverComponent.OnCornerEnter -= OnCornerEnterHandler;
         CoverComponent.OnCornerExit -= OnCornerExitHandler;
+    }
+
+    private void OnDisable() {
+        // In case we're in 'corner view', this will reset the camera to the appropriate place.
+        StopAllCoroutines();
+        rotationPivot.localPosition = pivotStartLocalPosition;
     }
 }
