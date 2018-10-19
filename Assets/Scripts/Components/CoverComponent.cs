@@ -2,22 +2,21 @@
 
 public class CoverComponent : MonoBehaviour {
 
-    [Header("Raycast Lengths")]
-    private const float RAYCAST_LENGTH = 5f;
-    private const float RAYCAST_SPHERE_RADIOUS = 0.5f;
 
+    [Header("Default")]
     [SerializeField] private LayerMask coverObstaclesLayer;
+    [SerializeField] private const float RAYCAST_LENGTH = 5f;
+    private const float RAYCAST_SPHERE_RADIOUS = 0.5f;
     private bool isInCover = false;
 
     [Header("Lateral Movement")]
     // The distance in which the player will stop before bumping into other cover.
     [SerializeField] private float minDistanceToMoveFromCover = 1f;
     private const float checkCanMoveRaycastLength = 1.5f;
-    private Vector3 coverNormal;
-    private Vector3 checkLeft;
+    private bool canKeepMoving;
     private Vector3 checkRight;
-    private bool canMoveRight = true;
-    private bool canMoveLeft = true;
+    private Vector3 checkLeft;
+    private Vector3 coverNormal;
     public enum Side {
         RIGHT, LEFT
     };
@@ -26,8 +25,7 @@ public class CoverComponent : MonoBehaviour {
     [SerializeField] private float swapTriggerTime = 0.5f;
     [SerializeField] private float swapRaycastLength = 1.3f;
     private RaycastHit swapHit;
-    private bool swapLeftAvailable = false;
-    private bool swapRightAvailable = false;
+    private bool swapAvailable = false;
 
     // Event Dispatchers.
     public delegate void CornerEnter(Side fromSide);
@@ -41,41 +39,24 @@ public class CoverComponent : MonoBehaviour {
     private bool debug = true;
     private float currHitDtsiance = RAYCAST_LENGTH;
 
-    private void Update() {
-        if (debug && !isInCover) {
-            RaycastHit hit;
-            if (Physics.SphereCast(transform.position, RAYCAST_SPHERE_RADIOUS, transform.forward, out hit, RAYCAST_LENGTH, coverObstaclesLayer)) {
-                Debug.DrawLine(hit.point, hit.point + hit.normal * 20);
-            }
-        }
+    public void UpdateComponent(Vector3 dir, Side side) {
         if (isInCover) {
-            CalculateLateralMovementAvailability();
-            CalculateSwapChangeAvailability(-transform.right);  // Move right.
-            CalculateSwapChangeAvailability(transform.right);   // Move left.
+            CalculateLateralMovementAvailability(dir, side);
+            CalculateSwapChangeAvailability(dir);
         }
     }
 
-    private void CalculateLateralMovementAvailability() {
+    private void CalculateLateralMovementAvailability(Vector3 dir, Side side) {
         if (debug) {
-            Vector3 end = transform.position + Quaternion.Euler(0, 135, 0) * coverNormal * checkCanMoveRaycastLength;
-            Debug.DrawLine(transform.position, end, Color.green);
-            Vector3 end2 = transform.position + Quaternion.Euler(0, -135, 0) * coverNormal * checkCanMoveRaycastLength;
-            Debug.DrawLine(transform.position, end2, Color.blue);
+            Vector3 end = transform.position + (side == Side.RIGHT ? checkRight : checkLeft) * checkCanMoveRaycastLength;
+            Debug.DrawLine(transform.position, end, Color.black);
         }
-
-        bool currCanMoveRight = Physics.Raycast(transform.position, checkRight, checkCanMoveRaycastLength, coverObstaclesLayer);
-        if (!currCanMoveRight && canMoveRight && OnCornerEnter != null)
-            OnCornerEnter(Side.RIGHT);
-        if (currCanMoveRight && !canMoveRight && OnCornerExit != null)
+        bool currCanMove = Physics.Raycast(transform.position, side == Side.RIGHT ? checkRight : checkLeft, checkCanMoveRaycastLength, coverObstaclesLayer);
+        if (!currCanMove && canKeepMoving && OnCornerEnter != null)
+            OnCornerEnter(side);
+        if (currCanMove && !canKeepMoving && OnCornerExit != null)
             OnCornerExit();
-        canMoveRight = currCanMoveRight;
-
-        bool currCanMoveLeft = Physics.Raycast(transform.position, checkLeft, checkCanMoveRaycastLength, coverObstaclesLayer);
-        if (!currCanMoveLeft && canMoveLeft && OnCornerEnter != null)
-            OnCornerEnter(Side.LEFT);
-        if (currCanMoveLeft && !canMoveLeft && OnCornerExit != null)
-            OnCornerExit();
-        canMoveLeft = currCanMoveLeft;
+        canKeepMoving = currCanMove;
     }
 
     public bool ToogleCover() {
@@ -99,8 +80,8 @@ public class CoverComponent : MonoBehaviour {
     private void ActivateCover(RaycastHit hit) {
         // We save the hit normal and calculate the vectors that will help determine if the player can continue to move left or right in cover.
         coverNormal = hit.normal;
-        checkLeft = Quaternion.Euler(0, 135, 0) * coverNormal;
         checkRight = Quaternion.Euler(0, -135, 0) * coverNormal;
+        checkLeft = Quaternion.Euler(0, 135, 0) * coverNormal;
 
         // Set new position.
         Vector3 coverPosition = hit.point;
@@ -117,12 +98,8 @@ public class CoverComponent : MonoBehaviour {
         isInCover = false;
     }
 
-    public bool CanMoveLeft() {
-        return canMoveLeft;
-    }
-
-    public bool CanMoveRight() {
-        return canMoveRight;
+    public bool CanKeepMoving() {
+        return canKeepMoving;
     }
 
     /*private void OnDrawGizmos() {
@@ -131,7 +108,9 @@ public class CoverComponent : MonoBehaviour {
         Gizmos.DrawWireSphere(transform.position + transform.forward * currHitDtsiance, RAYCAST_SPHERE_RADIOUS);
     }*/
 
-    // Swap
+    // *************************************
+    // SWAP
+    // *************************************
 
     private void CalculateSwapChangeAvailability(Vector3 dir) {
         // Direct cover.
@@ -147,11 +126,8 @@ public class CoverComponent : MonoBehaviour {
                     OnSwapChangeAvailability(true);
             }
 
-            if (hit.distance <= minDistanceToMoveFromCover) {
-                if (dir == -transform.right)
-                    canMoveRight = false;
-                else canMoveLeft = false;
-            }
+            if (hit.distance <= minDistanceToMoveFromCover)
+                canKeepMoving = false;
         }
         else if (swapAvailable) {
             swapAvailable = false;

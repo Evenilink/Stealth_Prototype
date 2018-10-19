@@ -36,19 +36,21 @@ public class CoverState : IHeroState {
                 hero.GetCoverComponent().Swap();
                 currSwapTriggerTime = 0f;
             }
-        }
-        else currSwapTriggerTime = 0;
+        } else currSwapTriggerTime = 0;
 
         return null;
     }
 
     private void UpdateMovement() {
         float hInput = Input.GetAxis("Horizontal");
-        // Debug.Log(hInput * rightDir * movSpeed + ", " + hInput * -rightDir * movSpeed);
+        if (hInput > 0)
+            hero.GetCoverComponent().UpdateComponent(-hero.transform.right, CoverComponent.Side.RIGHT);
+        else if (hInput < 0)
+            hero.GetCoverComponent().UpdateComponent(hero.transform.right, CoverComponent.Side.LEFT);
 
-        if (hInput > 0f && hero.GetCoverComponent().CanMoveRight())
+        if (hInput > 0f && hero.GetCoverComponent().CanKeepMoving())
             hero.transform.position += hInput * -hero.transform.right * movSpeed * Time.deltaTime;
-        else if (hInput < 0f && hero.GetCoverComponent().CanMoveLeft())
-            hero.transform.position -= hInput * hero.transform.right * movSpeed * Time.deltaTime;  // Why??? It should only require one minus!
+        else if (hInput < 0f && hero.GetCoverComponent().CanKeepMoving())
+            hero.transform.position -= hInput * hero.transform.right * movSpeed * Time.deltaTime;
     }
 }
