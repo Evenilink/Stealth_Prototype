@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 public class HUDManager : MonoBehaviour {
@@ -17,6 +15,10 @@ public class HUDManager : MonoBehaviour {
     [SerializeField] private Text currMagazine;
     [SerializeField] private Text fullMagazine;
 
+    [Header("Cover")]
+    [SerializeField] private Image coverImage;
+    [SerializeField] private Text coverText;
+
 	private void Awake () {
         AlertState.OnSuspiciousnessChange += OnSuspiciousnessChange;
 
@@ -29,6 +31,8 @@ public class HUDManager : MonoBehaviour {
 
         // WeaponComponent.Shoot += OnShoot;
         Weapon.OnClipAmmoChange += OnClipAmmoChange;
+
+        CoverComponent.OnSwapChangeAvailability += OnSwapChangeAvailability;
     }
 
     private void OnSuspiciousnessChange(float newValue) {
@@ -61,6 +65,11 @@ public class HUDManager : MonoBehaviour {
         currMagazine.text = currClip.ToString();
     }
 
+    private void OnSwapChangeAvailability(bool available) {
+        coverImage.gameObject.SetActive(available);
+        coverText.gameObject.SetActive(available);
+    }
+
     private void OnDestroy() {
         AlertState.OnSuspiciousnessChange -= OnSuspiciousnessChange;
         CoverComponent.OnCornerEnter -= OnCornerEnterHandler;
@@ -68,5 +77,6 @@ public class HUDManager : MonoBehaviour {
         InteractComponent.OnSeeInteractable -= OnSeeInteractableHandler;
         InteractComponent.OnStopSeeInteractable -= OnStopSeeInteractableHandler;
         Weapon.OnClipAmmoChange -= OnClipAmmoChange;
+        CoverComponent.OnSwapChangeAvailability -= OnSwapChangeAvailability;
     }
 }

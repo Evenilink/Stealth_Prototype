@@ -9,12 +9,12 @@ public class CoverState : IHeroState {
     private Vector3 rightDir;
     private bool reachedRightEnd = false;
     private bool reachedLeftEnd = false;
+    private float currSwapTriggerTime = 0f;
 
     public void Enter(Hero hero) {
         Debug.Log("IHeroState: Entered 'CoverState'.");
         this.hero = hero;
         hero.SetActiveCamera(hero.GetTPCamera());
-        rightDir = Quaternion.Euler(0, -90, 0) * hero.GetCoverComponent().GetCoverNormal();
     }
 
     public void Exit() {
@@ -29,6 +29,16 @@ public class CoverState : IHeroState {
             if (exitCover)
                 return new StandingState();
         }
+
+        if (Input.GetButton("Cover Interaction") && hero.GetCoverComponent().IsSwapAvailable()) {
+            currSwapTriggerTime += Time.deltaTime;
+            if (currSwapTriggerTime >= hero.GetCoverComponent().GetSwapTriggerTime()) {
+                hero.GetCoverComponent().Swap();
+                currSwapTriggerTime = 0f;
+            }
+        }
+        else currSwapTriggerTime = 0;
+
         return null;
     }
 
@@ -37,8 +47,8 @@ public class CoverState : IHeroState {
         // Debug.Log(hInput * rightDir * movSpeed + ", " + hInput * -rightDir * movSpeed);
 
         if (hInput > 0f && hero.GetCoverComponent().CanMoveRight())
-            hero.transform.position += hInput * rightDir * movSpeed * Time.deltaTime;
+            hero.transform.position += hInput * -hero.transform.right * movSpeed * Time.deltaTime;
         else if (hInput < 0f && hero.GetCoverComponent().CanMoveLeft())
-            hero.transform.position -= hInput * -rightDir * movSpeed * Time.deltaTime;  // Why??? It should only require one minus!
+            hero.transform.position -= hInput * hero.transform.right * movSpeed * Time.deltaTime;  // Why??? It should only require one minus!
     }
 }
