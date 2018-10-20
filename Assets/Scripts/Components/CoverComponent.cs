@@ -171,20 +171,14 @@ public class CoverComponent : MonoBehaviour {
     private void CalculateJumpSwapAvailability(Vector3 dir) {
         RaycastHit hit;
         float step = hJumpSwapDist / jumpSwapRays;
-        float currStep = 0;
-        Vector3 checkDir;
-        Vector3 startPosition;
-        float raycastLength;
+        Vector3 startPosition = transform.position + dir * swapRaycastLength + transform.forward * vJumpSwapDist / 2f;
 
         // We iterate until numRays + 1 because we also want to raycast one with dir direction (the first and higher priority one).
         for (int i = 0; i < jumpSwapRays + 1; i++) {
-            checkDir = -transform.forward;
-            startPosition = transform.position + dir * swapRaycastLength + transform.forward * vJumpSwapDist / 2f + dir * currStep;
-            raycastLength = vJumpSwapDist;
-            currStep += step;
+            startPosition += dir * step;
 
-            Debug.DrawLine(startPosition, startPosition + checkDir * raycastLength, Color.black);
-            if (Physics.Raycast(startPosition, checkDir, out hit, raycastLength, coverObstaclesLayer)) {
+            Debug.DrawLine(startPosition, startPosition + -transform.forward * vJumpSwapDist, Color.black);
+            if (Physics.Raycast(startPosition, -transform.forward, out hit, vJumpSwapDist, coverObstaclesLayer)) {
                 jumpSwapHit = hit;
                 jumpSwapAvailable = true;
                 break;

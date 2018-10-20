@@ -19,7 +19,10 @@ public class Radar : MonoBehaviour {
     [SerializeField] private float radarWidth = 200f;
     [SerializeField] private float radarHeight = 200f;
     [SerializeField] private float mapZoom = 5.0f;
+    [SerializeField] private float offsetFromCorner = 50f;
     [SerializeField] private Image image;
+
+    [Header("Radar Entities Settings")]
     [SerializeField] Sprite enemyNotAware;
     [SerializeField] Sprite enemySuspicious;
     [SerializeField] Sprite enemyAlerted;
@@ -36,7 +39,7 @@ public class Radar : MonoBehaviour {
 
         RectTransform rect = GetComponent<RectTransform>();
         rect.sizeDelta = new Vector2(radarWidth, radarHeight);
-        rect.position = new Vector3(radarWidth / 2f + 50f, radarHeight / 2f + 50f, 0);
+        rect.position = new Vector3(radarWidth / 2f + offsetFromCorner, radarHeight / 2f + offsetFromCorner, 0);
         entitiesInfo = new List<EntityInfo>();
     }
 
