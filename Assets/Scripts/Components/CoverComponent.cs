@@ -7,6 +7,8 @@ public class CoverComponent : MonoBehaviour {
     [SerializeField] private const float RAYCAST_LENGTH = 5f;
     private const float RAYCAST_SPHERE_RADIOUS = 0.5f;
     private bool isInCover = false;
+    private Vector3 coverNormal;
+    public enum SwapType { NORMAL, JUMP };
 
     [Header("Lateral Movement")]
     // The distance in which the player will stop before bumping into other cover.
@@ -15,10 +17,7 @@ public class CoverComponent : MonoBehaviour {
     private bool canKeepMoving;
     private Vector3 checkRight;
     private Vector3 checkLeft;
-    private Vector3 coverNormal;
-    public enum Side {
-        RIGHT, LEFT
-    };
+    public enum Side { RIGHT, LEFT };
 
     [Header("Swap")]
     [SerializeField] private float swapTriggerTime = 0.5f;
@@ -32,18 +31,18 @@ public class CoverComponent : MonoBehaviour {
     [SerializeField] private int jumpSwapRays = 5;
     private RaycastHit jumpSwapHit;
     private bool jumpSwapAvailable = false;
+    private GameObject coverObj;
 
     // Event Dispatchers.
     public delegate void CornerEnter(Side fromSide);
     public static CornerEnter OnCornerEnter;
     public delegate void CornerExit();
     public static CornerExit OnCornerExit;
-    public delegate void SwapChangeAvailability(bool available);
+    public delegate void SwapChangeAvailability(SwapType type, bool available);
     public static SwapChangeAvailability OnSwapChangeAvailability;
 
     [Header("Debug")]
     private bool debug = true;
-    private float currHitDtsiance = RAYCAST_LENGTH;
 
     public void UpdateComponent(Vector3 dir, Side side) {
         if (isInCover) {
@@ -100,7 +99,12 @@ public class CoverComponent : MonoBehaviour {
         // Set new rotation.
         transform.rotation = Quaternion.LookRotation(hit.normal, transform.up);
 
+        if (coverObj != hit.collider.gameObject)
+            coverObj = hit.collider.gameObject;
+
         isInCover = true;
+        swapAvailable = false;
+        jumpSwapAvailable = false;
     }
 
     private void DeactivateCover() {
@@ -110,12 +114,6 @@ public class CoverComponent : MonoBehaviour {
     public bool CanKeepMoving() {
         return canKeepMoving;
     }
-
-    /*private void OnDrawGizmos() {
-        Debug.DrawLine(transform.position, transform.position + transform.forward * currHitDtsiance);
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position + transform.forward * currHitDtsiance, RAYCAST_SPHERE_RADIOUS);
-    }*/
 
     // SWAP **********************************************************************************
 
@@ -139,7 +137,7 @@ public class CoverComponent : MonoBehaviour {
                 swapAvailable = true;
                 swapHit = hit;
                 if (OnSwapChangeAvailability != null)
-                    OnSwapChangeAvailability(true);
+                    OnSwapChangeAvailability(SwapType.NORMAL, true);
             }
             // We only want to stop the movement if we're too close to a direct swap.
             if (directSwapAvailable && hit.distance <= minDistanceToMoveFromCover)
@@ -148,7 +146,7 @@ public class CoverComponent : MonoBehaviour {
         else if (swapAvailable) {
             swapAvailable = false;
             if (OnSwapChangeAvailability != null)
-                OnSwapChangeAvailability(false);
+                OnSwapChangeAvailability(SwapType.NORMAL, false);
         }
     }
 
@@ -168,22 +166,32 @@ public class CoverComponent : MonoBehaviour {
 
     // JUMP SWAP **********************************************************************************
 
+    // Calculates if a jump swap is possible, and sets the appropriate variables.
     private void CalculateJumpSwapAvailability(Vector3 dir) {
         RaycastHit hit;
         float step = hJumpSwapDist / jumpSwapRays;
         Vector3 startPosition = transform.position + dir * swapRaycastLength + transform.forward * vJumpSwapDist / 2f;
+        bool currJumpSwapAvailable = false;
 
         // We iterate until numRays + 1 because we also want to raycast one with dir direction (the first and higher priority one).
         for (int i = 0; i < jumpSwapRays + 1; i++) {
             startPosition += dir * step;
-
             Debug.DrawLine(startPosition, startPosition + -transform.forward * vJumpSwapDist, Color.black);
-            if (Physics.Raycast(startPosition, -transform.forward, out hit, vJumpSwapDist, coverObstaclesLayer)) {
+            if (currJumpSwapAvailable = Physics.Raycast(startPosition, -transform.forward, out hit, vJumpSwapDist, coverObstaclesLayer) && hit.collider.gameObject != coverObj) {
                 jumpSwapHit = hit;
-                jumpSwapAvailable = true;
                 break;
             }
         }
+
+        if (currJumpSwapAvailable && !jumpSwapAvailable) {
+            if (OnSwapChangeAvailability != null)
+                OnSwapChangeAvailability(SwapType.JUMP, true);
+        } else if (!currJumpSwapAvailable && jumpSwapAvailable) {
+            if (OnSwapChangeAvailability != null)
+                OnSwapChangeAvailability(SwapType.JUMP, false);
+        }
+        jumpSwapAvailable = currJumpSwapAvailable;
+
     }
 
     public void JumpSwap() {

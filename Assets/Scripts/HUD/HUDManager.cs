@@ -16,10 +16,10 @@ public class HUDManager : MonoBehaviour {
     [SerializeField] private Text fullMagazine;
 
     [Header("Cover")]
-    [SerializeField] private Image coverImage;
-    [SerializeField] private Text coverText;
+    [SerializeField] private GameObject swapInfo;
+    [SerializeField] private GameObject jumpSwapInfo;
 
-	private void Awake () {
+    private void Awake () {
         AlertState.OnSuspiciousnessChange += OnSuspiciousnessChange;
 
         // TODO: not receiving these events!!!!!!!!!!!!!!!
@@ -65,9 +65,34 @@ public class HUDManager : MonoBehaviour {
         currMagazine.text = currClip.ToString();
     }
 
-    private void OnSwapChangeAvailability(bool available) {
-        coverImage.gameObject.SetActive(available);
-        coverText.gameObject.SetActive(available);
+    private void OnSwapChangeAvailability(CoverComponent.SwapType type, bool available) {
+        if (type == CoverComponent.SwapType.NORMAL) {
+            swapInfo.SetActive(available);
+            if (jumpSwapInfo.activeSelf) {
+                RectTransform rect = swapInfo.GetComponent<RectTransform>();
+                rect.position = new Vector3(Screen.width / 3f, rect.position.y, rect.position.z);
+                rect = jumpSwapInfo.GetComponent<RectTransform>();
+                rect.position = new Vector3(Screen.width - Screen.width / 3f, rect.position.y, rect.position.z);
+            }
+            else {
+                Debug.Log("cens");
+                RectTransform rect = swapInfo.GetComponent<RectTransform>();
+                rect.position = new Vector3(Screen.width / 2f, rect.position.y, rect.position.z);
+            }
+        } else if (type == CoverComponent.SwapType.JUMP) {
+            jumpSwapInfo.SetActive(available);
+            if (swapInfo.activeSelf) {
+                RectTransform rect = swapInfo.GetComponent<RectTransform>();
+                rect.position = new Vector3(Screen.width / 3f, rect.position.y, rect.position.z);
+                rect = jumpSwapInfo.GetComponent<RectTransform>();
+                rect.position = new Vector3(Screen.width - Screen.width / 3f, rect.position.y, rect.position.z);
+            }
+            else {
+                RectTransform rect = jumpSwapInfo.GetComponent<RectTransform>();
+                rect.position = new Vector3(Screen.width / 2f, rect.position.y, rect.position.z);
+            }
+        }
+
     }
 
     private void OnDestroy() {
