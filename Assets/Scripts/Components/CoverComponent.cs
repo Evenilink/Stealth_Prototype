@@ -26,6 +26,13 @@ public class CoverComponent : MonoBehaviour {
     private RaycastHit swapHit;
     private bool swapAvailable = false;
 
+    [Header("Swap Jump")]
+    [SerializeField] private float hJumpSwapDist = 5f;
+    [SerializeField] private float vJumpSwapDist = 5f;
+    [SerializeField] private int jumpSwapRays = 5;
+    private RaycastHit jumpSwapHit;
+    private bool jumpSwapAvailable = false;
+
     // Event Dispatchers.
     public delegate void CornerEnter(Side fromSide);
     public static CornerEnter OnCornerEnter;
@@ -42,6 +49,7 @@ public class CoverComponent : MonoBehaviour {
         if (isInCover) {
             CalculateLateralMovementAvailability(dir, side);
             CalculateSwapChangeAvailability(dir);
+            CalculateJumpSwapAvailability(dir);
         }
     }
 
@@ -109,9 +117,7 @@ public class CoverComponent : MonoBehaviour {
         Gizmos.DrawWireSphere(transform.position + transform.forward * currHitDtsiance, RAYCAST_SPHERE_RADIOUS);
     }*/
 
-    // *************************************
-    // SWAP
-    // *************************************
+    // SWAP **********************************************************************************
 
     // Calculates if a direct or undirect swap is possible, and sets the appropriate variables.
     private void CalculateSwapChangeAvailability(Vector3 dir) {
@@ -158,5 +164,40 @@ public class CoverComponent : MonoBehaviour {
 
     public float GetSwapTriggerTime() {
         return swapTriggerTime;
+    }
+
+    // JUMP SWAP **********************************************************************************
+
+    private void CalculateJumpSwapAvailability(Vector3 dir) {
+        RaycastHit hit;
+        float step = hJumpSwapDist / jumpSwapRays;
+        float currStep = 0;
+        Vector3 checkDir;
+        Vector3 startPosition;
+        float raycastLength;
+
+        // We iterate until numRays + 1 because we also want to raycast one with dir direction (the first and higher priority one).
+        for (int i = 0; i < jumpSwapRays + 1; i++) {
+            checkDir = -transform.forward;
+            startPosition = transform.position + dir * swapRaycastLength + transform.forward * vJumpSwapDist / 2f + dir * currStep;
+            raycastLength = vJumpSwapDist;
+            currStep += step;
+
+            Debug.DrawLine(startPosition, startPosition + checkDir * raycastLength, Color.black);
+            if (Physics.Raycast(startPosition, checkDir, out hit, raycastLength, coverObstaclesLayer)) {
+                jumpSwapHit = hit;
+                jumpSwapAvailable = true;
+                break;
+            }
+        }
+    }
+
+    public void JumpSwap() {
+        if (isInCover)
+            ActivateCover(jumpSwapHit);
+    }
+
+    public bool IsJumpSwapAvailable() {
+        return jumpSwapAvailable;
     }
 }

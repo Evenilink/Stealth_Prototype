@@ -105,24 +105,5 @@ public class InteractComponent : MonoBehaviour {
 
     private float GetAngleToPickObject(GameObject gameObject, Vector3 collidedSideNormal) {
         return 180 - Vector3.SignedAngle(transform.forward, collidedSideNormal, Vector3.up);
-
-        if (collidedSideNormal == gameObject.transform.forward) {
-            Debug.Log("Front");
-            return 0f;
-        }
-        else if (collidedSideNormal == -gameObject.transform.forward) {
-            float a = 180 - Vector3.SignedAngle(transform.forward, collidedSideNormal, Vector3.up);
-            Debug.Log("Back: " + a);
-            return a;
-        }
-        else if (collidedSideNormal == gameObject.transform.right) {
-            Debug.Log("Right");
-            return 90f;
-        }
-        else if (collidedSideNormal == -gameObject.transform.right) {
-            Debug.Log("Left");
-            return 270f;
-        }
-        return 0f;
     }
 }

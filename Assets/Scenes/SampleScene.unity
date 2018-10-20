@@ -1415,7 +1415,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 950409273}
   m_LocalRotation: {x: -0, y: 0.9681239, z: -0, w: 0.25047207}
-  m_LocalPosition: {x: 1, y: -3.6346984, z: -2.02}
+  m_LocalPosition: {x: 3.25, y: -3.6346984, z: 0.8}
   m_LocalScale: {x: 5.8499274, y: 3.29909, z: 5.2112365}
   m_Children: []
   m_Father: {fileID: 184507716}
@@ -2958,8 +2958,8 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1796232285}
-  m_LocalRotation: {x: 0, y: -1, z: 0, w: 0}
-  m_LocalPosition: {x: 0.77, y: 0.84, z: 0.27}
+  m_LocalRotation: {x: -0, y: -0.9709426, z: -0, w: -0.23931263}
+  m_LocalPosition: {x: 4.618822, y: 0.84, z: 0.47970945}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 468634748}
@@ -2967,7 +2967,7 @@ Transform:
   - {fileID: 48646786}
   m_Father: {fileID: 0}
   m_RootOrder: 4
-  m_LocalEulerAnglesHint: {x: 0, y: -180, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -207.69199, z: 0}
 --- !u!114 &1796232292
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3039,6 +3039,9 @@ MonoBehaviour:
   minDistanceToMoveFromCover: 1
   swapTriggerTime: 0.5
   swapRaycastLength: 1.3
+  hJumpSwapDist: 5
+  vJumpSwapDist: 5
+  jumpSwapRays: 5
 --- !u!1 &1853180651
 GameObject:
   m_ObjectHideFlags: 0

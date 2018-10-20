@@ -1,14 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class CoverState : IHeroState {
 
     private Hero hero;
     private float movSpeed = 3f;
-    private Vector3 rightDir;
-    private bool reachedRightEnd = false;
-    private bool reachedLeftEnd = false;
     private float currSwapTriggerTime = 0f;
 
     public void Enter(Hero hero) {
@@ -37,6 +32,9 @@ public class CoverState : IHeroState {
                 currSwapTriggerTime = 0f;
             }
         } else currSwapTriggerTime = 0;
+
+        if (Input.GetButtonDown("Cover Interaction") && hero.GetCoverComponent().IsJumpSwapAvailable())
+            hero.GetCoverComponent().JumpSwap();
 
         return null;
     }
