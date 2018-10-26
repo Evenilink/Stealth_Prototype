@@ -31,6 +31,7 @@ public class CoverComponent : MonoBehaviour {
     [SerializeField] private int jumpSwapRays = 5;
     private RaycastHit jumpSwapHit;
     private bool jumpSwapAvailable = false;
+    // Obj that the player is currently in cover. We need this to remove the possibility of jump swaping to the same cover object, since that object can be big enough to do that.
     private GameObject coverObj;
 
     // Event Dispatchers.

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class RadarEntity : MonoBehaviour {
+public class RadarEntityComponent : MonoBehaviour {
 
     private void Start() {
         Radar.Instance().AddEntity(gameObject);
