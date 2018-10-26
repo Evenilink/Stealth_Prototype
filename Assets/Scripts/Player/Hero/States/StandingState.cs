@@ -31,6 +31,7 @@ public class StandingState : IHeroState {
     private void UpdateMovement() {
         float hInput = Input.GetAxis("Horizontal");
         float vInput = Input.GetAxis("Vertical");
+        pc.GetAnimController().SetFloat("hInput", hInput);
 
         Vector3 forwardMovement = pc.GetActiveCamera().transform.forward;
         forwardMovement.y = 0;

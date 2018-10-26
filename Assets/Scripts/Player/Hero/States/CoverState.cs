@@ -12,10 +12,12 @@ public class CoverState : IHeroState {
         Debug.Log("IpcState: Entered 'CoverState'.");
         this.pc = pc;
         pc.SetActiveCamera(pc.GetTPCamera());
+        pc.GetAnimController().SetBool("inCover", true);
     }
 
     public void Exit() {
         Debug.Log("IpcState: Exited 'CoverState'.");
+        pc.GetAnimController().SetBool("inCover", false);
     }
 
     public IHeroState Update() {
@@ -57,5 +59,10 @@ public class CoverState : IHeroState {
             pc.transform.position += hInput * -pc.transform.right * movSpeed * Time.deltaTime;
         else if (hInput < 0f && pc.GetCoverComponent().CanKeepMoving())
             pc.transform.position -= hInput * pc.transform.right * movSpeed * Time.deltaTime;
+
+        // Anim Controller.
+        if (pc.GetCoverComponent().CanKeepMoving())
+            pc.GetAnimController().SetFloat("hInput", hInput);
+        else pc.GetAnimController().SetFloat("hInput", 0);
     }
 }

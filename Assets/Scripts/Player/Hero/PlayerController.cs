@@ -24,6 +24,7 @@ public class PlayerController : MonoBehaviour {
         coverComp = GetComponent<CoverComponent>();
         noiseEmitter = GetComponent<PawnNoiseEmitterComponent>();
         interactComp = GetComponent<InteractComponent>();
+        animController = GetComponentInChildren<Animator>();
         heroState = new StandingState();
         heroState.Enter(this);
     }
@@ -75,5 +76,9 @@ public class PlayerController : MonoBehaviour {
 
     public CoverComponent GetCoverComponent() {
         return coverComp;
+    }
+
+    public Animator GetAnimController() {
+        return animController;
     }
 }
