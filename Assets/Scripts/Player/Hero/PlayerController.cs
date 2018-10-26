@@ -13,6 +13,11 @@ public class PlayerController : MonoBehaviour {
     private InteractComponent interactComp;
     private IHeroState heroState;
     private Animator animController;
+    private new CapsuleCollider collider;
+    private float startColliderHeight;
+
+    [SerializeField] private float crouchHeighAdjustment = 0.7f;
+    private bool crouch = false;
 
     /*private struct InventoryWeapons {
         BaseWeapon weaponStats;
@@ -25,6 +30,8 @@ public class PlayerController : MonoBehaviour {
         noiseEmitter = GetComponent<PawnNoiseEmitterComponent>();
         interactComp = GetComponent<InteractComponent>();
         animController = GetComponentInChildren<Animator>();
+        collider = GetComponent<CapsuleCollider>();
+        startColliderHeight = collider.height;
         heroState = new StandingState();
         heroState.Enter(this);
     }
@@ -37,12 +44,30 @@ public class PlayerController : MonoBehaviour {
             heroState.Enter(this);
         }
 
+        if (Input.GetKeyDown(KeyCode.P))
+            SetCrouch(!crouch);
+
         if (Input.GetButtonDown("Interact"))
             interactComp.Interact();
 
         // Debug only.
         if (Input.GetKeyDown(KeyCode.Q))
             noiseEmitter.MakeNoise(this.gameObject, 1, transform.position);
+    }
+
+    private void SetCrouch(bool value) {
+        if (value != crouch) {
+            if (value) {
+                collider.height /= 2;
+                collider.center = new Vector3(collider.center.x, collider.height / 2, collider.center.z);
+            }
+            else {
+                collider.height = startColliderHeight;
+                collider.center = new Vector3(collider.center.x, collider.height / 2, collider.center.z);
+            }
+            crouch = value;
+            animController.SetBool("crouched", crouch);
+        }
     }
 
     public BaseCamera GetFPCamera() {

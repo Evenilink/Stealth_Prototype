@@ -55,12 +55,15 @@ public class CoverState : IHeroState {
         else if (hInput < 0)
             pc.GetCoverComponent().UpdateComponent(pc.transform.right, CoverComponent.Side.LEFT);
 
-        if (hInput > 0f && pc.GetCoverComponent().CanKeepMoving())
+        if (hInput > 0f && pc.GetCoverComponent().CanKeepMoving()) {
             pc.transform.position += hInput * -pc.transform.right * movSpeed * Time.deltaTime;
-        else if (hInput < 0f && pc.GetCoverComponent().CanKeepMoving())
+            pc.GetAnimController().SetBool("coverFacingLeft", true);
+        }
+        else if (hInput < 0f && pc.GetCoverComponent().CanKeepMoving()) {
             pc.transform.position -= hInput * pc.transform.right * movSpeed * Time.deltaTime;
+            pc.GetAnimController().SetBool("coverFacingLeft", false);
+        }
 
-        // Anim Controller.
         if (pc.GetCoverComponent().CanKeepMoving())
             pc.GetAnimController().SetFloat("hInput", hInput);
         else pc.GetAnimController().SetFloat("hInput", 0);
