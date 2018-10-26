@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 39232817fd9530343b910e65bc329ac0
+guid: dc95069ed5afc094db987d77ca9b6579
 ModelImporter:
   serializedVersion: 23
   fileIDToRecycleName:
@@ -143,7 +143,7 @@ ModelImporter:
     400134: swat:Spine1
     400136: swat:Spine2
     400138: //RootNode
-    7400000: Idle
+    7400000: Cover Idle
     9500000: //RootNode
     2186277476908879412: ImportLogs
   externalObjects: {}
@@ -178,10 +178,10 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Idle
+      name: Cover Idle
       takeName: mixamo.com
       firstFrame: 0
-      lastFrame: 126
+      lastFrame: 135
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
