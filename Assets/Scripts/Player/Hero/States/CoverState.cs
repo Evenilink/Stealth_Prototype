@@ -27,9 +27,9 @@ public class CoverState : IHeroState {
                 return new StandingState();
         }
 
-        if (Input.GetButton("Cover Interaction") && hero.GetCoverComponent().IsSwapAvailable()) {
+        if (Input.GetButton("Cover Interaction") && (hero.GetCoverComponent().IsSwapAvailable() || hero.GetCoverComponent().IsJumpSwapAvailable())) {
             currSwapTriggerTime += Time.deltaTime;
-            if (currSwapTriggerTime >= hero.GetCoverComponent().GetSwapTriggerTime()) {
+            if (currSwapTriggerTime >= hero.GetCoverComponent().GetSwapTriggerTime() && hero.GetCoverComponent().IsSwapAvailable()) {
                 hero.GetCoverComponent().Swap();
                 currSwapTriggerTime = 0f;
             }
@@ -39,17 +39,8 @@ public class CoverState : IHeroState {
             currSwapTriggerTime = 0f;
             hero.GetCoverComponent().JumpSwap();
         }
-
-        /*if (Input.GetButton("Cover Interaction") && hero.GetCoverComponent().IsSwapAvailable()) {
-            currSwapTriggerTime += Time.deltaTime;
-            if (currSwapTriggerTime >= hero.GetCoverComponent().GetSwapTriggerTime()) {
-                hero.GetCoverComponent().Swap();
-                currSwapTriggerTime = 0f;
-            }
-        } else currSwapTriggerTime = 0;
-
-        if (Input.GetButtonDown("Cover Interaction") && hero.GetCoverComponent().IsJumpSwapAvailable())
-            hero.GetCoverComponent().JumpSwap();*/
+        else if (currSwapTriggerTime != 0)
+            currSwapTriggerTime = 0;
 
         return null;
     }
