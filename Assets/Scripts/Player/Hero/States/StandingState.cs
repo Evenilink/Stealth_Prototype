@@ -2,13 +2,13 @@
 
 public class StandingState : IHeroState {
 
-    private Hero hero;
+    private PlayerController pc;
     private float movSpeed = 5f;
 
-    public void Enter(Hero hero) {
+    public void Enter(PlayerController pc) {
         Debug.Log("IHeroState: Entered 'StandingState'.");
-        this.hero = hero;
-        hero.SetActiveCamera(hero.GetFPCamera());
+        this.pc = pc;
+        pc.SetActiveCamera(pc.GetFPCamera());
     }
 
     public void Exit() {
@@ -19,7 +19,7 @@ public class StandingState : IHeroState {
         UpdateMovement();
 
         if (Input.GetButtonDown("Cover")) {
-            bool enterCover = hero.GetCoverComponent().ToogleCover();
+            bool enterCover = pc.GetCoverComponent().ToogleCover();
             if (enterCover)
                 return new CoverState();
         }
@@ -32,14 +32,14 @@ public class StandingState : IHeroState {
         float hInput = Input.GetAxis("Horizontal");
         float vInput = Input.GetAxis("Vertical");
 
-        Vector3 forwardMovement = hero.GetActiveCamera().transform.forward;
+        Vector3 forwardMovement = pc.GetActiveCamera().transform.forward;
         forwardMovement.y = 0;
         forwardMovement *= vInput;
 
-        Vector3 rightMovement = hero.GetActiveCamera().transform.right;
+        Vector3 rightMovement = pc.GetActiveCamera().transform.right;
         rightMovement.y = 0;
         rightMovement *= hInput;
 
-        hero.transform.position += (forwardMovement + rightMovement) * movSpeed * Time.deltaTime;
+        pc.transform.position += (forwardMovement + rightMovement) * movSpeed * Time.deltaTime;
     }
 }

@@ -1,6 +1,6 @@
 ﻿public interface IHeroState {
 
     IHeroState Update();
-    void Enter(Hero hero);
+    void Enter(PlayerController pc);
     void Exit();
 }

@@ -2,42 +2,43 @@
 
 public class CoverState : IHeroState {
 
-    private Hero hero;
+    private PlayerController pc;
     private float movSpeed = 3f;
     private float currSwapTriggerTime = 0f;
 
     private float jumpSwapKeyPressTime = 0.2f;
 
-    public void Enter(Hero hero) {
-        Debug.Log("IHeroState: Entered 'CoverState'.");
-        this.hero = hero;
-        hero.SetActiveCamera(hero.GetTPCamera());
+    public void Enter(PlayerController pc) {
+        Debug.Log("IpcState: Entered 'CoverState'.");
+        this.pc = pc;
+        pc.SetActiveCamera(pc.GetTPCamera());
     }
 
     public void Exit() {
-        Debug.Log("IHeroState: Exited 'CoverState'.");
+        Debug.Log("IpcState: Exited 'CoverState'.");
     }
 
     public IHeroState Update() {
         UpdateMovement();
         
         if (Input.GetButtonDown("Cover")) {
-            bool exitCover = hero.GetCoverComponent().ToogleCover();
+            bool exitCover = pc.GetCoverComponent().ToogleCover();
             if (exitCover)
                 return new StandingState();
         }
 
-        if (Input.GetButton("Cover Interaction") && (hero.GetCoverComponent().IsSwapAvailable() || hero.GetCoverComponent().IsJumpSwapAvailable())) {
+        // Store the cumulative time the cover interaction button is being pressed, only if there's a swap type available.
+        if (Input.GetButton("Cover Interaction") && (pc.GetCoverComponent().IsSwapAvailable() || pc.GetCoverComponent().IsJumpSwapAvailable())) {
             currSwapTriggerTime += Time.deltaTime;
-            if (currSwapTriggerTime >= hero.GetCoverComponent().GetSwapTriggerTime() && hero.GetCoverComponent().IsSwapAvailable()) {
-                hero.GetCoverComponent().Swap();
+            if (currSwapTriggerTime >= pc.GetCoverComponent().GetSwapTriggerTime() && pc.GetCoverComponent().IsSwapAvailable()) {
+                pc.GetCoverComponent().Swap();
                 currSwapTriggerTime = 0f;
             }
         }
         // Only jump swap if the player already pressed the swap button, but not for the necessary time it's required for a swap, so do a jump swap instead.
-        else if (Input.GetButtonUp("Cover Interaction") && currSwapTriggerTime > 0 && hero.GetCoverComponent().IsJumpSwapAvailable()) {
+        else if (Input.GetButtonUp("Cover Interaction") && currSwapTriggerTime > 0 && pc.GetCoverComponent().IsJumpSwapAvailable()) {
             currSwapTriggerTime = 0f;
-            hero.GetCoverComponent().JumpSwap();
+            pc.GetCoverComponent().JumpSwap();
         }
         else if (currSwapTriggerTime != 0)
             currSwapTriggerTime = 0;
@@ -48,13 +49,13 @@ public class CoverState : IHeroState {
     private void UpdateMovement() {
         float hInput = Input.GetAxis("Horizontal");
         if (hInput > 0)
-            hero.GetCoverComponent().UpdateComponent(-hero.transform.right, CoverComponent.Side.RIGHT);
+            pc.GetCoverComponent().UpdateComponent(-pc.transform.right, CoverComponent.Side.RIGHT);
         else if (hInput < 0)
-            hero.GetCoverComponent().UpdateComponent(hero.transform.right, CoverComponent.Side.LEFT);
+            pc.GetCoverComponent().UpdateComponent(pc.transform.right, CoverComponent.Side.LEFT);
 
-        if (hInput > 0f && hero.GetCoverComponent().CanKeepMoving())
-            hero.transform.position += hInput * -hero.transform.right * movSpeed * Time.deltaTime;
-        else if (hInput < 0f && hero.GetCoverComponent().CanKeepMoving())
-            hero.transform.position -= hInput * hero.transform.right * movSpeed * Time.deltaTime;
+        if (hInput > 0f && pc.GetCoverComponent().CanKeepMoving())
+            pc.transform.position += hInput * -pc.transform.right * movSpeed * Time.deltaTime;
+        else if (hInput < 0f && pc.GetCoverComponent().CanKeepMoving())
+            pc.transform.position -= hInput * pc.transform.right * movSpeed * Time.deltaTime;
     }
 }

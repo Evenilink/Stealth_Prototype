@@ -1,26 +1,24 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class CrouchState : IHeroState {
 
-    private Hero hero;
+    private PlayerController pc;
     private float movSpeed = 5f;
 
-    public void Enter(Hero hero) {
-        Debug.Log("IHeroState: Entered 'StandingState'.");
-        this.hero = hero;
+    public void Enter(PlayerController pc) {
+        Debug.Log("IpcState: Entered 'StandingState'.");
+        this.pc = pc;
 
         // Lowering height of the collider.
-        hero.GetComponent<CapsuleCollider>().height = 1.5f;
+        pc.GetComponent<CapsuleCollider>().height = 1.5f;
 
-        hero.SetActiveCamera(hero.GetFPCamera());
+        pc.SetActiveCamera(pc.GetFPCamera());
     }
 
     public void Exit() {
-        Debug.Log("IHeroState: Exited 'StandingState'.");
+        Debug.Log("IpcState: Exited 'StandingState'.");
         // Increasing height of the collider.
-        hero.GetComponent<CapsuleCollider>().height = 2.1f;
+        pc.GetComponent<CapsuleCollider>().height = 2.1f;
 
     }
 
@@ -28,7 +26,7 @@ public class CrouchState : IHeroState {
         UpdateMovement();
 
         if (Input.GetButtonDown("Cover")) {
-            bool enterCover = hero.GetCoverComponent().ToogleCover();
+            bool enterCover = pc.GetCoverComponent().ToogleCover();
             if (enterCover)
                 return new CoverState();
         }
@@ -41,14 +39,14 @@ public class CrouchState : IHeroState {
         float hInput = Input.GetAxis("Horizontal");
         float vInput = Input.GetAxis("Vertical");
 
-        Vector3 forwardMovement = hero.GetActiveCamera().transform.forward;
+        Vector3 forwardMovement = pc.GetActiveCamera().transform.forward;
         forwardMovement.y = 0;
         forwardMovement *= vInput;
 
-        Vector3 rightMovement = hero.GetActiveCamera().transform.right;
+        Vector3 rightMovement = pc.GetActiveCamera().transform.right;
         rightMovement.y = 0;
         rightMovement *= hInput;
 
-        hero.transform.position += (forwardMovement + rightMovement) * movSpeed * Time.deltaTime;
+        pc.transform.position += (forwardMovement + rightMovement) * movSpeed * Time.deltaTime;
     }
 }

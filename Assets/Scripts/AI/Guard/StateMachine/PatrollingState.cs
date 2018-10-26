@@ -40,7 +40,7 @@ public class PatrollingState : IGuardState {
     }
 
     public IGuardState OnSeePawnHandler(GameObject gameObject) {
-        if (gameObject.GetComponent<Hero>() != null)
+        if (gameObject.GetComponent<PlayerController>() != null)
             return new AlertState(gameObject);
         return null;
     }
