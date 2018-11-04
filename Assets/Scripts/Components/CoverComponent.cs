@@ -1,13 +1,19 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
+[RequireComponent(typeof(CapsuleCollider))]
 public class CoverComponent : MonoBehaviour {
 
     [Header("Default")]
+    // Distance the character is from the wall when in cover.
+    [SerializeField] private float distToWall = 1f;
     [SerializeField] private LayerMask coverObstaclesLayer;
     [SerializeField] private const float RAYCAST_LENGTH = 5f;
     private const float RAYCAST_SPHERE_RADIOUS = 0.5f;
     private bool isInCover = false;
     private Vector3 coverNormal;
+    private CapsuleCollider selfCollider;
+    private float startColliderRadious;
     public enum SwapType { NORMAL, JUMP };
 
     [Header("Lateral Movement")]
@@ -45,6 +51,11 @@ public class CoverComponent : MonoBehaviour {
     [Header("Debug")]
     private bool debug = true;
 
+    private void Awake() {
+        selfCollider = GetComponent<CapsuleCollider>();
+        startColliderRadious = selfCollider.radius;
+    }
+
     public void UpdateComponent(Vector3 dir, Side side) {
         if (isInCover) {
             CalculateLateralMovementAvailability(dir, side);
@@ -72,7 +83,7 @@ public class CoverComponent : MonoBehaviour {
         if (!isInCover) {
             RaycastHit hit;
             if (Physics.SphereCast(transform.position, RAYCAST_SPHERE_RADIOUS, transform.forward, out hit, RAYCAST_LENGTH, coverObstaclesLayer)) {
-                ActivateCover(hit);
+                ActivateCover(hit, false);
                 return true;
             }
             else {
@@ -86,19 +97,11 @@ public class CoverComponent : MonoBehaviour {
         }
     }
 
-    private void ActivateCover(RaycastHit hit) {
+    private void ActivateCover(RaycastHit hit, bool fromCover) {
         // We save the hit normal and calculate the vectors that will help determine if the player can continue to move left or right in cover.
         coverNormal = hit.normal;
         checkRight = Quaternion.Euler(0, -135, 0) * coverNormal;
         checkLeft = Quaternion.Euler(0, 135, 0) * coverNormal;
-
-        // Set new position.
-        Vector3 coverPosition = hit.point;
-        coverPosition.y = transform.position.y;
-        transform.position = coverPosition;
-
-        // Set new rotation.
-        transform.rotation = Quaternion.LookRotation(hit.normal, transform.up);
 
         if (coverObj != hit.collider.gameObject)
             coverObj = hit.collider.gameObject;
@@ -106,6 +109,33 @@ public class CoverComponent : MonoBehaviour {
         isInCover = true;
         swapAvailable = false;
         jumpSwapAvailable = false;
+
+        // Set new position.
+        Vector3 dstPosition = hit.point + coverNormal * distToWall;
+        dstPosition.y = transform.position.y;
+        // Set new rotation.
+        Quaternion dstRotation = Quaternion.LookRotation(hit.normal, transform.up);
+
+        if (!fromCover) {
+            transform.position = dstPosition;
+            transform.rotation = dstRotation;
+        }
+        else StartCoroutine(MoveCoverToCover(dstPosition, dstRotation));
+    }
+
+    // Coroutine to move the character from cover to cover, given a destination position and rotation.
+    // It works by zeroing the collider radius, applying the timeline, and assign the start radius again to the collider.
+    private IEnumerator MoveCoverToCover(Vector3 dstPosition, Quaternion dstRotation) {
+        selfCollider.radius = 0f;
+        float fracCompleted = 0;
+        float startTime = Time.time;
+        while (fracCompleted < 1) {
+            fracCompleted = (Time.time - startTime) / 0.5f;
+            transform.position = Vector3.Lerp(transform.position, dstPosition, fracCompleted);
+            transform.rotation = Quaternion.Lerp(transform.rotation, dstRotation, fracCompleted);
+            yield return null;
+        }
+        selfCollider.radius = startColliderRadious;
     }
 
     private void DeactivateCover() {
@@ -120,7 +150,6 @@ public class CoverComponent : MonoBehaviour {
 
     // Calculates if a direct or undirect swap is possible, and sets the appropriate variables.
     private void CalculateSwapChangeAvailability(Vector3 dir) {
-        // Direct cover.
         if (debug) {
             Debug.DrawLine(transform.position, transform.position + dir * swapRaycastLength, Color.green);
             Debug.DrawLine(transform.position + dir * swapRaycastLength + -transform.forward * 2f, transform.position + dir * swapRaycastLength + -transform.forward * 2f + -dir * swapRaycastLength, Color.yellow);
@@ -134,6 +163,8 @@ public class CoverComponent : MonoBehaviour {
         if (!directSwapAvailable)
             undirectSwapAvailable = Physics.Raycast(transform.position + dir * swapRaycastLength + -transform.forward, -dir, out hit, swapRaycastLength * 2f, coverObstaclesLayer);
         if(directSwapAvailable || undirectSwapAvailable) {
+            // We only assign these values when we find a different swap point from the previously found, otherwise we would be
+            // wasting CPU time in the assignments, and we would dispatch the event more times than we would like.
             if (hit.point != swapHit.point || !swapAvailable) {
                 swapAvailable = true;
                 swapHit = hit;
@@ -154,7 +185,7 @@ public class CoverComponent : MonoBehaviour {
     // Executes the swap.
     public void Swap() {
         if (swapAvailable)
-            ActivateCover(swapHit);
+            ActivateCover(swapHit, true);
     }
 
     public bool IsSwapAvailable() {
@@ -197,7 +228,7 @@ public class CoverComponent : MonoBehaviour {
 
     public void JumpSwap() {
         if (isInCover)
-            ActivateCover(jumpSwapHit);
+            ActivateCover(jumpSwapHit, true);
     }
 
     public bool IsJumpSwapAvailable() {
