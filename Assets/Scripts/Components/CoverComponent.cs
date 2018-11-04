@@ -16,6 +16,7 @@ public class CoverComponent : MonoBehaviour {
     private CapsuleCollider selfCollider;
     private float startColliderRadious;
     public enum SwapType { NORMAL, JUMP };
+    private Side lastFacingSide;
 
     [Header("Lateral Movement")]
     // The distance in which the player will stop before bumping into other cover.
@@ -60,9 +61,11 @@ public class CoverComponent : MonoBehaviour {
             distToWall = startColliderRadious;
     }
 
-    public void UpdateComponent(Vector3 dir, Side side) {
+    public void UpdateComponent(Vector3 dir, Side newFacingSide) {
         if (isInCover) {
-            CalculateLateralMovementAvailability(dir, side);
+            if (newFacingSide != lastFacingSide)
+                lastFacingSide = newFacingSide;
+            CalculateLateralMovementAvailability(dir, newFacingSide);
             CalculateSwapChangeAvailability(dir);
             CalculateJumpSwapAvailability(dir);
         }
@@ -107,22 +110,35 @@ public class CoverComponent : MonoBehaviour {
         checkRight = Quaternion.Euler(0, -135, 0) * coverNormal;
         checkLeft = Quaternion.Euler(0, 135, 0) * coverNormal;
 
+        if (!isInCover)
+            isInCover = true;
+        if (swapAvailable)
+            swapAvailable = false;
+        if (jumpSwapAvailable)
+            jumpSwapAvailable = false;
         if (coverObj != hit.collider.gameObject)
             coverObj = hit.collider.gameObject;
 
-        isInCover = true;
-        swapAvailable = false;
-        jumpSwapAvailable = false;
+        // OnCornerExit and OnSwapChangeAvailability are called, so that the third person camera resets
+        // to the pivot (center) position, and the HUD information regarding available swaps dissapear.
+        if (OnCornerExit != null)
+            OnCornerExit();
+        if (OnSwapChangeAvailability != null) {
+            OnSwapChangeAvailability(SwapType.NORMAL, false);
+            OnSwapChangeAvailability(SwapType.JUMP, false);
+        }
 
-        // Set new position.
+        // New position.
         Vector3 dstPosition = hit.point + coverNormal * distToWall;
         dstPosition.y = transform.position.y;
-        // Set new rotation.
+        // New rotation.
         Quaternion dstRotation = Quaternion.LookRotation(hit.normal, transform.up);
 
         if (!fromCover) {
             transform.position = dstPosition;
             transform.rotation = dstRotation;
+            CalculateSwapChangeAvailability(lastFacingSide == Side.RIGHT ? transform.right : -transform.right);
+            CalculateJumpSwapAvailability(lastFacingSide == Side.RIGHT ? transform.right : -transform.right);
         }
         else StartCoroutine(MoveCoverToCover(dstPosition, dstRotation));
     }
@@ -134,12 +150,14 @@ public class CoverComponent : MonoBehaviour {
         float fracCompleted = 0;
         float startTime = Time.time;
         while (fracCompleted < 1) {
-            fracCompleted = (Time.time - startTime) / 0.5f;
+            fracCompleted = (Time.time - startTime) / 0.5f; // TODO: fix this hard coded value.
             transform.position = Vector3.Lerp(transform.position, dstPosition, fracCompleted);
             transform.rotation = Quaternion.Lerp(transform.rotation, dstRotation, fracCompleted);
             yield return null;
         }
         selfCollider.radius = startColliderRadious;
+        CalculateSwapChangeAvailability(lastFacingSide == Side.RIGHT ? -transform.right : transform.right);
+        CalculateJumpSwapAvailability(lastFacingSide == Side.RIGHT ? -transform.right : transform.right);
     }
 
     private void DeactivateCover() {
@@ -187,12 +205,6 @@ public class CoverComponent : MonoBehaviour {
         }
     }
 
-    // Executes the swap.
-    public void Swap() {
-        if (swapAvailable)
-            ActivateCover(swapHit, true);
-    }
-
     public bool IsSwapAvailable() {
         return swapAvailable;
     }
@@ -210,8 +222,7 @@ public class CoverComponent : MonoBehaviour {
         Vector3 startPosition = transform.position + dir * swapRaycastLength + transform.forward * vJumpSwapDist / 2f;
         bool currJumpSwapAvailable = false;
 
-        // We iterate until numRays + 1 because we also want to raycast one with dir direction (the first and higher priority one).
-        for (int i = 0; i < jumpSwapRays + 1; i++) {
+        for (int i = 0; i < jumpSwapRays; i++) {
             startPosition += dir * step;
             Debug.DrawLine(startPosition, startPosition + -transform.forward * vJumpSwapDist, Color.black);
             if (currJumpSwapAvailable = Physics.Raycast(startPosition, -transform.forward, out hit, vJumpSwapDist, coverObstaclesLayer) && hit.collider.gameObject != coverObj) {
@@ -231,12 +242,15 @@ public class CoverComponent : MonoBehaviour {
 
     }
 
-    public void JumpSwap() {
-        if (isInCover)
-            ActivateCover(jumpSwapHit, true);
-    }
-
     public bool IsJumpSwapAvailable() {
         return jumpSwapAvailable;
+    }
+
+    // Executes the swap.
+    public void AttempSwap(SwapType type) {
+        if (type == SwapType.NORMAL && swapAvailable)
+            ActivateCover(swapHit, true);
+        else if (type == SwapType.JUMP && jumpSwapAvailable)
+            ActivateCover(jumpSwapHit, true);
     }
 }

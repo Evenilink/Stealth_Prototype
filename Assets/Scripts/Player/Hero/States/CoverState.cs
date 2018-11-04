@@ -33,14 +33,14 @@ public class CoverState : IHeroState {
         if (Input.GetButton("Cover Interaction") && (pc.GetCoverComponent().IsSwapAvailable() || pc.GetCoverComponent().IsJumpSwapAvailable())) {
             currSwapTriggerTime += Time.deltaTime;
             if (currSwapTriggerTime >= pc.GetCoverComponent().GetSwapTriggerTime() && pc.GetCoverComponent().IsSwapAvailable()) {
-                pc.GetCoverComponent().Swap();
+                pc.GetCoverComponent().AttempSwap(CoverComponent.SwapType.NORMAL);
                 currSwapTriggerTime = 0f;
             }
         }
         // Only jump swap if the player already pressed the swap button, but not for the necessary time it's required for a swap, so do a jump swap instead.
         else if (Input.GetButtonUp("Cover Interaction") && currSwapTriggerTime > 0 && pc.GetCoverComponent().IsJumpSwapAvailable()) {
             currSwapTriggerTime = 0f;
-            pc.GetCoverComponent().JumpSwap();
+            pc.GetCoverComponent().AttempSwap(CoverComponent.SwapType.JUMP);
         }
         else if (currSwapTriggerTime != 0)
             currSwapTriggerTime = 0;

@@ -68,14 +68,15 @@ public class HUDManager : MonoBehaviour {
     private void OnSwapChangeAvailability(CoverComponent.SwapType type, bool available) {
         if (type == CoverComponent.SwapType.NORMAL) {
             swapInfo.SetActive(available);
+            // If both the swap types are available, both need to be displayed on the screen, so we calculate their position on the HUD...
             if (jumpSwapInfo.activeSelf) {
                 RectTransform rect = swapInfo.GetComponent<RectTransform>();
                 rect.position = new Vector3(Screen.width / 3f, rect.position.y, rect.position.z);
                 rect = jumpSwapInfo.GetComponent<RectTransform>();
                 rect.position = new Vector3(Screen.width - Screen.width / 3f, rect.position.y, rect.position.z);
             }
+            // ... otherwise, the position is set to the center of the screen.
             else {
-                Debug.Log("cens");
                 RectTransform rect = swapInfo.GetComponent<RectTransform>();
                 rect.position = new Vector3(Screen.width / 2f, rect.position.y, rect.position.z);
             }
