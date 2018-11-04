@@ -6,9 +6,10 @@ public class CoverComponent : MonoBehaviour {
 
     [Header("Default")]
     // Distance the character is from the wall when in cover.
-    [SerializeField] private float distToWall = 1f;
+    // When this distance is smaller than the collider's radius, the distance is set to the radius value.
+    [SerializeField, Range(0f, 0.8f)] private float distToWall = 1f;
     [SerializeField] private LayerMask coverObstaclesLayer;
-    [SerializeField] private const float RAYCAST_LENGTH = 5f;
+    private const float RAYCAST_LENGTH = 5f;
     private const float RAYCAST_SPHERE_RADIOUS = 0.5f;
     private bool isInCover = false;
     private Vector3 coverNormal;
@@ -54,6 +55,9 @@ public class CoverComponent : MonoBehaviour {
     private void Awake() {
         selfCollider = GetComponent<CapsuleCollider>();
         startColliderRadious = selfCollider.radius;
+        // When this distance is smaller than the collider's radius, the distance is set to the radius value.
+        if (distToWall < startColliderRadious)
+            distToWall = startColliderRadious;
     }
 
     public void UpdateComponent(Vector3 dir, Side side) {
@@ -172,6 +176,7 @@ public class CoverComponent : MonoBehaviour {
                     OnSwapChangeAvailability(SwapType.NORMAL, true);
             }
             // We only want to stop the movement if we're too close to a direct swap.
+            // We can ignore the undirect swap, since the method "CalculateLateralMovementAvailability" already makes the character stop moving when the raycasts fails.
             if (directSwapAvailable && hit.distance <= minDistanceToMoveFromCover)
                 canKeepMoving = false;
         }
